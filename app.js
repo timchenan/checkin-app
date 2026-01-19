@@ -1,3 +1,17 @@
+async function checkUser() {
+    const { data: { user } } = await _supabase.auth.getUser();
+    
+    if (!user) {
+        // If not logged in, send them to the login page
+        window.location.href = "login.html";
+    } else {
+        console.log("Welcome,", user.email);
+    }
+}
+
+// Run this check as soon as the page loads
+checkUser();
+
 // 1. Configuration
 const SUPABASE_URL = 'https://iyprasuguxuulysxhpzg.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_3gjXiKyPCiTiNadINRUdrg_qN6a7wCM';
