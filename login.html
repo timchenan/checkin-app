@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Check-In App</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+    <div class="card">
+        <h2 id="authTitle">Login</h2>
+
+        <div class="input-group">
+            <label>Email</label>
+            <input type="email" id="email" placeholder="you@example.com">
+        </div>
+
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="password" placeholder="Min 6 characters">
+        </div>
+
+        <button id="mainBtn" onclick="handleAuth()">Sign In</button>
+
+        <p id="toggleText" onclick="toggleMode()"
+            style="cursor:pointer; font-size:0.8rem; margin-top:15px; color:#666;">
+            Need an account? Register here.
+        </p>
+
+        <p id="authMsg"></p>
+    </div>
+
+    <script src="auth.js"></script>
+</body>
+
+</html>
