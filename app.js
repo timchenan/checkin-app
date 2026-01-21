@@ -21,10 +21,15 @@ async function checkUser() {
         const displayEmail = document.getElementById('displayEmail');
         if (displayEmail) displayEmail.innerText = user.email;
 
-        // NEW: Check for invitations only if on the dashboard
+        // Check if we are on the dashboard
         const isDashboard = window.location.pathname.includes('index.html') || window.location.pathname.endsWith('/');
+
         if (isDashboard) {
+            // 1. Check for private invites
             checkForInvites(user.email);
+
+            // 2. Load the public social feed (Add this line!)
+            loadSocialFeed();
         }
     }
     return user;
@@ -74,3 +79,58 @@ function setupGPS() {
     }
 }
 setupGPS();
+
+async function loadSocialFeed() {
+    const feedContainer = document.getElementById('socialFeed');
+    if (!feedContainer) return;
+
+    const { data: activities, error } = await _supabase
+        .from('check_ins')
+        .select(`
+            name,
+            location,
+            result_notes,
+            created_at,
+            plans (sport)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+    if (error) return;
+
+    feedContainer.innerHTML = "";
+    activities.forEach(item => {
+        const username = item.name.split('@')[0];
+        const sportName = item.plans ? item.plans.sport : "Activity";
+
+        // --- TIME AGO LOGIC ---
+        const now = new Date();
+        const past = new Date(item.created_at);
+        const diffInMs = now - past;
+        const diffInMins = Math.floor(diffInMs / (1000 * 60));
+        const diffInHours = Math.floor(diffInMins / 60);
+        const diffInDays = Math.floor(diffInHours / 24);
+
+        let timeAgo = "";
+        if (diffInMins < 1) timeAgo = "Just now";
+        else if (diffInMins < 60) timeAgo = `${diffInMins}m ago`;
+        else if (diffInHours < 24) timeAgo = `${diffInHours}h ago`;
+        else timeAgo = past.toLocaleDateString([], { month: 'short', day: 'numeric' });
+
+        const div = document.createElement('div');
+        div.style.cssText = "padding:12px; border-bottom:1px solid #eee; text-align:left; font-size:0.9rem;";
+
+        div.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                    <span style="color:#007bff; font-weight:bold;">${username}</span> 
+                    is doing <strong>${sportName}</strong>
+                </div>
+                <span style="color:#999; font-size:0.7rem;">${timeAgo}</span>
+            </div>
+            <div style="font-size:0.85rem; color:#333; margin-top:2px;">@ ${item.location}</div>
+            <div style="color:#28a745; font-size:0.8rem; margin-top:4px;">${item.result_notes ? '🏆 ' + item.result_notes : '✅ Checked in'}</div>
+        `;
+        feedContainer.appendChild(div);
+    });
+}

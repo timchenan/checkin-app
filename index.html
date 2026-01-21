@@ -12,8 +12,14 @@
 <body>
 
     <div class="card">
-        <h2>Dashboard</h2>
-        <p id="userEmail" style="font-size: 0.9rem; color: #666; margin-bottom: 2rem;"></p>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+            <h2 style="margin: 0;">Dashboard</h2>
+            <a href="history.html"
+                style="text-decoration: none; font-size: 1.2rem; filter: grayscale(100%); opacity: 0.6;"
+                title="My History">📈</a>
+        </div>
+
+        <p id="userEmail" style="font-size: 0.8rem; color: #999; margin-top: 0; margin-bottom: 1.5rem;"></p>
 
         <div id="invitationAlert" style="display:none;"></div>
 
@@ -21,17 +27,23 @@
             <button onclick="window.location.href='plan.html'" style="background: #007bff;">
                 📅 Plan for Next
             </button>
-
             <button onclick="window.location.href='checkin.html'">
                 📍 I'm Here Now!
             </button>
         </div>
 
-        <hr style="margin: 2rem 0; border: 0; border-top: 1px solid #eee;">
+    <hr style="margin: 2rem 0; border: 0; border-top: 1px solid #eee;">
 
-        <button onclick="handleLogout()" style="background: #6c757d; font-size: 0.8rem; padding: 10px;">
-            Logout
-        </button>
+    <button onclick="handleLogout()" style="background: #6c757d; font-size: 0.8rem; padding: 10px;">
+        Logout
+    </button>
+
+    <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+        <h3 style="font-size: 1.1rem; margin-bottom: 15px;">Recent Activity 👟</h3>
+        <div id="socialFeed">
+            <p style="font-size: 0.8rem; color: #999;">Loading activity...</p>
+        </div>
+    </div>
     </div>
 
     <script src="app.js"></script>
