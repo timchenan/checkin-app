@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Progress - SportSocial</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="card" style="max-width: 500px;">
+        <h2>My Progress 🏆</h2>
+        
+        <div id="statsSummary" style="display:flex; justify-content:space-around; margin-bottom:20px; background:#f0f7ff; padding:15px; border-radius:10px;">
+            <div id="totalCheckins">--<br><small>Total</small></div>
+            <div id="favSport">--<br><small>Top Sport</small></div>
+        </div>
+
+        <div id="historyList">
+            <p>Loading your history...</p>
+        </div>
+
+        <button onclick="window.location.href='index.html'" style="background:#6c757d; margin-top:20px;">Back to Dashboard</button>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        async function loadHistory() {
+            const user = await checkUser(); // From app.js
+            if (!user) return;
+
+            const { data: logs, error } = await _supabase
+                .from('check_ins')
+                .select('*, plans(sport)')
+                .eq('name', user.email) // Filter for only YOU
+                .order('created_at', { ascending: false });
+
+            if (error) return;
+
+            // 1. Update UI List
+            const list = document.getElementById('historyList');
+            list.innerHTML = "";
+            
+            logs.forEach(log => {
+                const date = new Date(log.created_at).toLocaleDateString();
+                const sport = log.plans ? log.plans.sport : "Manual Check-in";
+                
+                const item = document.createElement('div');
+                item.style.cssText = "text-align:left; border-bottom:1px solid #eee; padding:10px 0;";
+                item.innerHTML = `
+                    <div style="font-size:0.75rem; color:#999;">${date}</div>
+                    <strong>${sport}</strong> @ ${log.location}
+                    <div style="color:#28a745;">${log.result_notes || ''}</div>
+                `;
+                list.appendChild(item);
+            });
+
+            // 2. Simple Stat Calc
+            document.getElementById('totalCheckins').innerHTML = `${logs.length}<br><small>Total</small>`;
+        }
+        
+        window.onload = loadHistory;
+    </script>
+</body>
+</html>

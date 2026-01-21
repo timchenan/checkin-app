@@ -12,48 +12,37 @@
 <body>
 
     <div class="card">
-        <h2>Plan for Next</h2>
+        <h2>Plan an Activity</h2>
 
         <div class="input-group">
-            <label>Select Sport</label>
+            <label>What sport?</label>
             <select id="sportSelect">
-                <option value="Swim">Swim 🏊‍♂️</option>
-                <option value="Workout">Workout 🏋️‍♂️</option>
                 <option value="Tennis">Tennis 🎾</option>
+                <option value="Swim">Swim 🏊</option>
+                <option value="Workout">Workout 💪</option>
                 <option value="Badminton">Badminton 🏸</option>
             </select>
         </div>
 
         <div class="input-group">
-            <label>Time</label>
+            <label>When?</label>
             <input type="datetime-local" id="planTime">
         </div>
 
         <div class="input-group">
-            <label>Location</label>
+            <label>Where?</label>
             <input type="text" id="planLocation" placeholder="e.g. Central Park">
         </div>
 
-        <div class="input-group">
-            <label>Notes (Optional)</label>
-            <input type="text" id="planNotes" placeholder="e.g. Bring extra water">
-        </div>
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
 
         <div class="input-group">
-            <label>Invite Friend (Email)</label>
+            <label style="color: #666; font-size: 0.8rem;">Invite Friend (Optional)</label>
             <input type="email" id="inviteEmail" placeholder="friend@email.com">
         </div>
 
-        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
-            <input type="checkbox" id="sendEmailBox" style="width: auto;">
-            <label for="sendEmailBox" style="font-size: 0.8rem; margin: 0;">Open email app to send invite</label>
-        </div>
-
-        <button onclick="savePlan()">Save Plan</button>
-        <button onclick="window.location.href='index.html'" style="background: #6c757d; margin-top: 0.5rem;">Back to
-            Dashboard</button>
-
-        <p id="planMsg"></p>
+        <button onclick="savePlan()">Create Plan</button>
+        <button onclick="window.location.href='index.html'" style="background: #6c757d; margin-top: 10px;">Back</button>
     </div>
 
     <script src="app.js"></script>
@@ -63,29 +52,22 @@
             const time = document.getElementById('planTime').value;
             const loc = document.getElementById('planLocation').value;
             const invitee = document.getElementById('inviteEmail').value;
-            const shouldSendEmail = document.getElementById('sendEmailBox').checked;
 
             if (!time || !loc) return alert("Please set a time and location.");
 
-            // 1. Save to Supabase
+            // Save to Supabase
             const { data, error } = await _supabase.from('plans').insert([{
                 sport: sport,
                 plan_time: time,
                 location: loc,
-                invitees: invitee // Store the email in our new column
+                invitees: invitee,
+                user_id: (await _supabase.auth.getUser()).data.user.id
             }]);
 
             if (error) {
                 alert("Error saving: " + error.message);
             } else {
-                // 2. If the box was checked, trigger the email app
-                if (shouldSendEmail && invitee) {
-                    const subject = encodeURIComponent(`Sport Invite: ${sport}!`);
-                    const body = encodeURIComponent(`Hey! Want to join me for ${sport} at ${loc} on ${time}? Check in on the app when you get there!`);
-                    window.location.href = `mailto:${invitee}?subject=${subject}&body=${body}`;
-                }
-
-                alert("Plan created!");
+                alert("Plan created! Your friend will see the invite on their dashboard.");
                 window.location.href = 'index.html';
             }
         }
