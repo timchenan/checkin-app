@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan Activity - SportSocial</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+
+    <div class="card">
+        <h2>Plan for Next</h2>
+
+        <div class="input-group">
+            <label>Select Sport</label>
+            <select id="sportSelect">
+                <option value="Swim">Swim 🏊‍♂️</option>
+                <option value="Workout">Workout 🏋️‍♂️</option>
+                <option value="Tennis">Tennis 🎾</option>
+                <option value="Badminton">Badminton 🏸</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label>Time</label>
+            <input type="datetime-local" id="planTime">
+        </div>
+
+        <div class="input-group">
+            <label>Location</label>
+            <input type="text" id="planLocation" placeholder="e.g. Central Park">
+        </div>
+
+        <div class="input-group">
+            <label>Notes (Optional)</label>
+            <input type="text" id="planNotes" placeholder="e.g. Bring extra water">
+        </div>
+
+        <div class="input-group">
+            <label>Invite Friend (Email)</label>
+            <input type="email" id="inviteEmail" placeholder="friend@email.com">
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+            <input type="checkbox" id="sendEmailBox" style="width: auto;">
+            <label for="sendEmailBox" style="font-size: 0.8rem; margin: 0;">Open email app to send invite</label>
+        </div>
+
+        <button onclick="savePlan()">Save Plan</button>
+        <button onclick="window.location.href='index.html'" style="background: #6c757d; margin-top: 0.5rem;">Back to
+            Dashboard</button>
+
+        <p id="planMsg"></p>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        async function savePlan() {
+            const sport = document.getElementById('sportSelect').value;
+            const time = document.getElementById('planTime').value;
+            const loc = document.getElementById('planLocation').value;
+            const invitee = document.getElementById('inviteEmail').value;
+            const shouldSendEmail = document.getElementById('sendEmailBox').checked;
+
+            if (!time || !loc) return alert("Please set a time and location.");
+
+            // 1. Save to Supabase
+            const { data, error } = await _supabase.from('plans').insert([{
+                sport: sport,
+                plan_time: time,
+                location: loc,
+                invitees: invitee // Store the email in our new column
+            }]);
+
+            if (error) {
+                alert("Error saving: " + error.message);
+            } else {
+                // 2. If the box was checked, trigger the email app
+                if (shouldSendEmail && invitee) {
+                    const subject = encodeURIComponent(`Sport Invite: ${sport}!`);
+                    const body = encodeURIComponent(`Hey! Want to join me for ${sport} at ${loc} on ${time}? Check in on the app when you get there!`);
+                    window.location.href = `mailto:${invitee}?subject=${subject}&body=${body}`;
+                }
+
+                alert("Plan created!");
+                window.location.href = 'index.html';
+            }
+        }
+    </script>
+</body>
+
+</html>
