@@ -4,32 +4,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Universal Check-In</title>
-
+    <title>Dashboard - SportSocial</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 
 <body>
 
     <div class="card">
-        <h2>Check-In</h2>
+        <h2>Dashboard</h2>
+        <p id="userEmail" style="font-size: 0.9rem; color: #666; margin-bottom: 2rem;"></p>
 
-        <div class="input-group">
-            <label>Your Name</label>
-            <input type="text" id="userName" placeholder="e.g. John Doe">
+        <div id="invitationAlert" style="display:none;"></div>
+
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <button onclick="window.location.href='plan.html'" style="background: #007bff;">
+                📅 Plan for Next
+            </button>
+
+            <button onclick="window.location.href='checkin.html'">
+                📍 I'm Here Now!
+            </button>
         </div>
 
-        <div class="input-group">
-            <label>Location</label>
-            <input type="text" id="locationInput" placeholder="Location loading...">
-        </div>
+        <hr style="margin: 2rem 0; border: 0; border-top: 1px solid #eee;">
 
-        <div class="cf-turnstile" data-sitekey="YOUR_CLOUDFLARE_SITE_KEY"></div>
-
-        <button onclick="checkIn()">Submit Check-In</button>
-        <p id="message"></p>
+        <button onclick="handleLogout()" style="background: #6c757d; font-size: 0.8rem; padding: 10px;">
+            Logout
+        </button>
     </div>
 
     <script src="app.js"></script>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check-In - SportSocial</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+
+    <div class="card">
+        <h2>Check-In</h2>
+
+        <p style="font-size: 0.8rem; color: #666;">
+            User: <span id="displayEmail"></span>
+        </p>
+
+        <div id="planPickerArea">
+            <p style="font-weight: bold; margin-bottom: 10px;">Select an activity to check in:</p>
+            <div id="plansList">
+                <p style="font-size: 0.9rem; color: #999;">Searching for plans...</p>
+            </div>
+        </div>
+
+        <div id="manualForm" style="display: none; border-top: 1px solid #eee; margin-top: 20px; padding-top: 20px;">
+            <div class="input-group">
+                <label>Where are you?</label>
+                <input type="text" id="locationInput" placeholder="e.g. Community Center">
+            </div>
+            <button onclick="submitManualCheckIn()">Submit Random Check-In</button>
+        </div>
+
+        <button id="toggleManualBtn" onclick="showManualForm()"
+            style="background: transparent; color: #007bff; border: none; font-size: 0.8rem; cursor: pointer;">
+            + Not on the list? Check in manually
+        </button>
+
+        <button onclick="window.location.href='index.html'" style="background: #6c757d; margin-top: 1.5rem;">Back to
+            Dashboard</button>
+
+        <p id="message"></p>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Note: We do NOT declare userCoords here if it is in app.js. 
+        // But since we removed it from app.js above, we keep it here:
+        let pageCoords = "Not provided";
+
+        window.onload = async function () {
+            // 1. Check Auth first using the function from app.js
+            const user = await checkUser();
+            if (!user) return;
+
+            document.getElementById('displayEmail').innerText = user.email;
+
+            // 2. Try GPS (fails silently if blocked)
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => { pageCoords = `${pos.coords.latitude}, ${pos.coords.longitude}`; },
+                    (err) => { console.log("GPS Blocked"); }
+                );
+            }
+
+            // 3. Load the plans
+            loadUserPlans(user.id);
+        };
+
+        async function loadUserPlans(userId) {
+            const { data: { user } } = await _supabase.auth.getUser();
+            const listContainer = document.getElementById('plansList');
+
+            // This query looks for plans YOU created OR plans where YOU are the invitee
+            const { data: plans, error } = await _supabase
+                .from('plans')
+                .select('*')
+                .or(`user_id.eq.${userId},invitees.eq.${user.email}`)
+                .eq('is_completed', false);
+
+            if (error || !plans || plans.length === 0) {
+                listContainer.innerHTML = "<p>No plans found.</p>";
+                showManualForm();
+                return;
+            }
+
+            listContainer.innerHTML = "";
+            plans.forEach(plan => {
+                const btn = document.createElement('button');
+                btn.className = "plan-btn"; // Add styling in CSS
+                btn.innerHTML = `<strong>${plan.sport}</strong><br>${plan.location}`;
+                btn.onclick = () => confirmPlannedCheckIn(plan);
+                listContainer.appendChild(btn);
+            });
+        }
+
+        // THE MISSING FUNCTIONS
+        function showManualForm() {
+            document.getElementById('manualForm').style.display = 'block';
+            document.getElementById('planPickerArea').style.display = 'none';
+            document.getElementById('toggleManualBtn').style.display = 'none';
+        }
+
+        async function confirmPlannedCheckIn(plan) {
+            const userEmail = document.getElementById('displayEmail').innerText;
+            const msg = document.getElementById('message');
+
+            // 1. Ask for the result (Simple & effective)
+            const stats = prompt(`Great job on ${plan.sport}! Any results to record? (e.g., 2 sets, 1000m)`, "");
+
+            if (stats === null) return; // User cancelled the check-in
+
+            msg.innerText = `Recording your ${plan.sport} results...`;
+
+            // 2. Insert into check_ins with the notes
+            const { error: checkError } = await _supabase.from('check_ins').insert([{
+                name: userEmail,
+                location: plan.location,
+                coords: userCoords,
+                plan_id: plan.id,
+                result_notes: stats // Saving your performance here!
+            }]);
+
+            if (checkError) {
+                msg.innerText = "Error: " + checkError.message;
+                return;
+            }
+
+            // 3. Mark the plan as completed
+            const { error: planError } = await _supabase
+                .from('plans')
+                .update({ is_completed: true })
+                .eq('id', plan.id);
+
+            if (!planError) {
+                msg.innerText = "Check-in & Results Saved!";
+                setTimeout(() => window.location.href = 'index.html', 1500);
+            }
+        }
+        async function submitManualCheckIn() {
+            const loc = document.getElementById('locationInput').value;
+            if (!loc) return alert("Please enter a location");
+
+            const { error } = await _supabase.from('check_ins').insert([{
+                name: document.getElementById('displayEmail').innerText,
+                location: loc,
+                coords: pageCoords
+            }]);
+
+            if (!error) {
+                alert("Random check-in successful!");
+                window.location.href = 'index.html';
+            }
+        }
+    </script>
+</body>
+
+</html>
